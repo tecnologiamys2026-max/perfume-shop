@@ -296,8 +296,8 @@ export default function AdminPanel() {
             {products.length === 0 ? (
                <p style={{ color: '#888', marginBottom: '1rem' }}>Aún no hay productos reales. Al guardar uno, aparecerá aquí.</p>
             ) : (
-              <div style={{ border: '1px solid #eee', borderRadius: '8px', overflow: 'hidden' }}>
-                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+              <div style={{ border: '1px solid #eee', borderRadius: '8px', overflowX: 'auto' }}>
+                <table style={{ width: '100%', minWidth: '600px', textAlign: 'left', borderCollapse: 'collapse' }}>
                   <thead style={{ background: '#f9f9f9' }}>
                     <tr>
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Foto</th>
