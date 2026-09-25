@@ -334,6 +334,7 @@ export default function AdminPanel() {
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Nombre</th>
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Marca</th>
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Precio</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Estado</th>
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Acciones</th>
                     </tr>
                   </thead>
@@ -350,6 +351,11 @@ export default function AdminPanel() {
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>{p.name}</td>
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>{p.brand?.name}</td>
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>${parseFloat(p.price).toFixed(2)}</td>
+                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
+                          <span style={{ padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', background: p.isAvailable ? '#e8f5e9' : '#f5f5f5', color: p.isAvailable ? '#2e7d32' : '#757575' }}>
+                            {p.isAvailable ? 'Activo' : 'Oculto'}
+                          </span>
+                        </td>
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
                           <button onClick={() => handleEditClick('producto', p.id, p.name)} style={{ color: '#3498db', background: 'none', border: 'none', cursor: 'pointer', marginRight: '10px' }}>Editar</button>
                           <button onClick={() => handleDeleteClick('producto', p.id)} style={{ color: '#e74c3c', background: 'none', border: 'none', cursor: 'pointer' }}>Eliminar</button>
