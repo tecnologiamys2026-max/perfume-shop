@@ -72,7 +72,10 @@ export default function Home() {
   return (
     <main>
       <nav className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem' }}>
-        <h1 style={{ color: '#2C3E50', margin: 0 }}>Mayra Shop</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src="/logo.jpg" alt="Mayra Shop Logo" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #66A5AD' }} />
+          <h1 style={{ color: '#2C3E50', margin: 0 }}>Mayra Shop</h1>
+        </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           {whatsapp && (
             <a href={`https://wa.me/${whatsapp.replace('+', '')}`} target="_blank" rel="noreferrer" style={{ background: '#25D366', color: 'white', padding: '0.5rem 1rem', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', fontWeight: 'bold', transition: 'transform 0.2s', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }} title="Contáctanos">

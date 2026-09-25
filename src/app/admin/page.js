@@ -232,7 +232,10 @@ export default function AdminPanel() {
     <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
       <Toaster position="top-right" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ color: '#2C3E50' }}>Panel de Administración - Mayra Shop</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <img src="/logo.jpg" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #66A5AD' }} />
+          <h2 style={{ color: '#2C3E50', margin: 0 }}>Panel de Administración - Mayra Shop</h2>
+        </div>
         <button onClick={() => setIsAuthenticated(false)} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 'bold', cursor: 'pointer' }}>Cerrar Sesión</button>
       </div>
       
