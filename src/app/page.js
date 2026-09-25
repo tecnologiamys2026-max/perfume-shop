@@ -72,10 +72,7 @@ export default function Home() {
   return (
     <main>
       <nav className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/logo.jpg" alt="Mayra Shop Logo" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #66A5AD' }} />
-          <h1 style={{ color: '#2C3E50', margin: 0 }}>Mayra Shop</h1>
-        </div>
+        <h1 style={{ color: '#2C3E50', margin: 0 }}>Mayra Shop</h1>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           {whatsapp && (
             <a href={`https://wa.me/${whatsapp.replace('+', '')}`} target="_blank" rel="noreferrer" style={{ background: '#25D366', color: 'white', padding: '0.5rem 1rem', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', fontWeight: 'bold', transition: 'transform 0.2s', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }} title="Contáctanos">
@@ -100,9 +97,10 @@ export default function Home() {
       {/* Alertas modernas */}
       <Toaster position="top-right" />
 
-      <section className="hero">
-        <h2>Bienvenido a Mayra Shop</h2>
-        <p>Tu esencia, tu estilo. Descubre nuestra colección exclusiva.</p>
+      <section className="hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <h2 style={{ margin: 0 }}>Bienvenidos a</h2>
+        <img src="/logo.jpg" alt="Mayra Shop Logo" style={{ width: '180px', height: '180px', objectFit: 'contain', borderRadius: '50%', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '4px solid white' }} />
+        <p style={{ marginTop: '0.5rem' }}>Tu esencia, tu estilo. Descubre nuestra colección exclusiva.</p>
       </section>
 
       <div className="container">
