@@ -30,14 +30,16 @@ export default function Home() {
         if (Array.isArray(dataCat)) {
           setCategories(dataCat);
         }
+
+        // Cargar configuraciones de WhatsApp y moneda
+        const resConfig = await fetch('/api/settings');
+        const dataConfig = await resConfig.json();
+        if (dataConfig && typeof dataConfig === 'object') {
+          if (dataConfig.whatsapp) setWhatsapp(dataConfig.whatsapp);
+          if (dataConfig.currency) setCurrency(dataConfig.currency);
+        }
       } catch (error) {
-        console.error('Error al cargar productos:', error);
-      }
-      
-      // Cargar configuración de moneda y WhatsApp
-      if (typeof window !== 'undefined') {
-        setCurrency(localStorage.getItem('currency') || 'USD');
-        setWhatsapp(localStorage.getItem('whatsapp') || '');
+        console.error('Error al cargar datos:', error);
       }
     };
     fetchProducts();

@@ -38,10 +38,12 @@ export default function AdminPanel() {
       const dataProducts = await resProducts.json();
       if (Array.isArray(dataProducts)) setProducts(dataProducts);
 
-      // Cargar configuración local si existe
-      if (typeof window !== 'undefined') {
-        setWhatsapp(localStorage.getItem('whatsapp') || '');
-        setCurrency(localStorage.getItem('currency') || 'USD');
+      // Cargar configuración de la base de datos
+      const resSettings = await fetch('/api/settings');
+      const dataSettings = await resSettings.json();
+      if (dataSettings && typeof dataSettings === 'object') {
+        if (dataSettings.whatsapp) setWhatsapp(dataSettings.whatsapp);
+        if (dataSettings.currency) setCurrency(dataSettings.currency);
       }
     } catch (error) {
       toast.error('Error al conectar con la base de datos');
@@ -186,13 +188,20 @@ export default function AdminPanel() {
     }
   };
 
-  const handleSaveConfig = (e) => {
+  const handleSaveConfig = async (e) => {
     e.preventDefault();
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('whatsapp', whatsapp);
-      localStorage.setItem('currency', currency);
+    toast.loading('Guardando configuración...', { id: 'saveConfig' });
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsapp, currency })
+      });
+      if (!response.ok) throw new Error();
+      toast.success('Configuración global actualizada', { id: 'saveConfig' });
+    } catch (error) {
+      toast.error('Error al guardar', { id: 'saveConfig' });
     }
-    toast.success('Configuración global actualizada');
   };
 
   if (!isAuthenticated) {
@@ -367,6 +376,31 @@ export default function AdminPanel() {
                 ))}
               </ul>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'config' && (
+          <div>
+            <h3 style={{ marginBottom: '1.5rem' }}>Configuración de la Tienda</h3>
+            <form onSubmit={handleSaveConfig} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Número de WhatsApp de Ventas</label>
+                <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Asegúrate de incluir el código de país, ej. +58 o +1.</p>
+                <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="Ej. +584141234567" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Moneda Principal</label>
+                <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }}>
+                  <option value="USD">Dólar Estadounidense (USD $)</option>
+                  <option value="VES">Bolívar Venezolano (VES Bs)</option>
+                  <option value="DOP">Peso Dominicano (DOP RD$)</option>
+                  <option value="EUR">Euro (EUR €)</option>
+                  <option value="COP">Peso Colombiano (COP $)</option>
+                  <option value="MXN">Peso Mexicano (MXN $)</option>
+                </select>
+              </div>
+              <button type="submit" style={{ background: '#66A5AD', color: 'white', padding: '1rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Guardar Configuración Global</button>
+            </form>
           </div>
         )}
 
