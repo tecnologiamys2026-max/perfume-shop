@@ -75,3 +75,20 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Error al eliminar el producto' }, { status: 500 });
   }
 }
+
+export async function PUT(request) {
+  try {
+    const { id, name } = await request.json();
+    if (!id || !name) {
+      return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
+    }
+    const updatedProduct = await prisma.product.update({
+      where: { id },
+      data: { name }
+    });
+    return NextResponse.json(updatedProduct);
+  } catch (error) {
+    console.error("Error al actualizar:", error);
+    return NextResponse.json({ error: 'Error al actualizar el producto' }, { status: 500 });
+  }
+}
