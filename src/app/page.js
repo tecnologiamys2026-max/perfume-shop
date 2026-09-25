@@ -63,6 +63,7 @@ export default function Home() {
 
   // Lógica de filtrado
   const filteredProducts = products.filter(product => {
+    if (!product.isAvailable) return false;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (product.brand?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Todas' || product.category?.name === selectedCategory;

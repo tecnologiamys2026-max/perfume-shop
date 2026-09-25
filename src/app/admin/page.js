@@ -22,6 +22,7 @@ export default function AdminPanel() {
   
   // Estado para modales personalizados
   const [modal, setModal] = useState({ isOpen: false, mode: '', type: '', id: null, name: '' });
+  const [editingProduct, setEditingProduct] = useState(null);
 
   // Función para cargar datos iniciales
   const loadData = async () => {
@@ -109,7 +110,13 @@ export default function AdminPanel() {
   };
 
   const handleEditClick = (type, id, currentName) => {
-    setModal({ isOpen: true, mode: 'edit', type, id, name: currentName });
+    if (type === 'producto') {
+      const p = products.find(prod => prod.id === id);
+      setEditingProduct(p);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      setModal({ isOpen: true, mode: 'edit', type, id, name: currentName });
+    }
   };
 
   const confirmDelete = async () => {
@@ -165,23 +172,28 @@ export default function AdminPanel() {
     const form = e.target;
     const formData = new FormData(form);
     
+    if (editingProduct) {
+      formData.append('id', editingProduct.id);
+    }
+    
     // Validación básica
     if (!formData.get('name') || !formData.get('price') || !formData.get('categoryId') || !formData.get('brandId')) {
       toast.error('Por favor, llena los campos obligatorios');
       return;
     }
     
-    toast.loading('Guardando producto...', { id: 'saveProduct' });
+    toast.loading(editingProduct ? 'Actualizando producto...' : 'Guardando producto...', { id: 'saveProduct' });
     try {
       const res = await fetch('/api/products', {
-        method: 'POST',
+        method: editingProduct ? 'PUT' : 'POST',
         body: formData
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
-      toast.success('Producto guardado correctamente', { id: 'saveProduct' });
+      toast.success(editingProduct ? 'Producto actualizado correctamente' : 'Producto guardado correctamente', { id: 'saveProduct' });
       form.reset(); // Limpiar el formulario
+      setEditingProduct(null);
       loadData(); // Recargar productos
     } catch (error) {
       toast.error(error.message || 'Error al guardar', { id: 'saveProduct' });
@@ -249,12 +261,12 @@ export default function AdminPanel() {
         
         {activeTab === 'productos' && (
           <div>
-            <h3 style={{ marginBottom: '1rem' }}>Añadir Nuevo Producto</h3>
-            <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem', borderBottom: '1px solid #eee', marginBottom: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem' }}>{editingProduct ? 'Editar Producto' : 'Añadir Nuevo Producto'}</h3>
+            <form key={editingProduct ? editingProduct.id : 'new'} onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem', borderBottom: '1px solid #eee', marginBottom: '2rem' }}>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 2 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Nombre del Producto *</label>
-                  <input name="name" type="text" placeholder="Ej. Aqua Di Gio" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required />
+                  <input name="name" type="text" defaultValue={editingProduct?.name || ''} placeholder="Ej. Aqua Di Gio" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Imagen (Archivo)</label>
@@ -264,11 +276,11 @@ export default function AdminPanel() {
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Precio *</label>
-                  <input name="price" type="number" step="0.01" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required />
+                  <input name="price" type="number" step="0.01" defaultValue={editingProduct?.price || ''} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Género</label>
-                  <select name="gender" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }}>
+                  <select name="gender" defaultValue={editingProduct?.gender || 'Damas'} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }}>
                     <option value="Damas">Damas</option>
                     <option value="Caballeros">Caballeros</option>
                     <option value="Unisex">Unisex</option>
@@ -279,20 +291,35 @@ export default function AdminPanel() {
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Categoría *</label>
-                  <select name="categoryId" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required>
+                  <select name="categoryId" defaultValue={editingProduct?.categoryId || ''} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required>
                     <option value="">Selecciona una categoría...</option>
                     {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Marca *</label>
-                  <select name="brandId" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required>
+                  <select name="brandId" defaultValue={editingProduct?.brandId || ''} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required>
                     <option value="">Selecciona una marca...</option>
                     {brands.map(brand => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
                   </select>
                 </div>
               </div>
-              <button type="submit" style={{ background: '#B2D8D8', padding: '1rem', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Guardar Producto</button>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500', cursor: 'pointer' }}>
+                  <input name="isAvailable" type="checkbox" value="true" defaultChecked={editingProduct ? editingProduct.isAvailable : true} style={{ width: '18px', height: '18px' }} />
+                  Disponible para la venta
+                </label>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="submit" style={{ flex: 1, background: '#B2D8D8', padding: '1rem', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                  {editingProduct ? 'Actualizar Producto' : 'Guardar Producto'}
+                </button>
+                {editingProduct && (
+                  <button type="button" onClick={() => setEditingProduct(null)} style={{ background: '#eee', padding: '1rem', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                    Cancelar
+                  </button>
+                )}
+              </div>
             </form>
 
             <h3 style={{ marginBottom: '1rem' }}>Lista de Productos</h3>

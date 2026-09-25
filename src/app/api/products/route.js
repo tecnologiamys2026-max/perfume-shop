@@ -23,6 +23,7 @@ export async function POST(request) {
     const gender = data.get('gender');
     const brandId = data.get('brandId');
     const categoryId = data.get('categoryId');
+    const isAvailable = data.get('isAvailable') !== 'false';
 
     if (!name || !price || !brandId || !categoryId) {
       return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
@@ -54,6 +55,7 @@ export async function POST(request) {
         gender,
         brandId: parseInt(brandId),
         categoryId: parseInt(categoryId),
+        isAvailable,
         imageUrl
       },
       include: { brand: true, category: true }
@@ -78,13 +80,43 @@ export async function DELETE(request) {
 
 export async function PUT(request) {
   try {
-    const { id, name } = await request.json();
-    if (!id || !name) {
+    const data = await request.formData();
+    const id = data.get('id');
+    const name = data.get('name');
+    const price = data.get('price');
+    const gender = data.get('gender');
+    const brandId = data.get('brandId');
+    const categoryId = data.get('categoryId');
+    const isAvailable = data.get('isAvailable') === 'true';
+    const file = data.get('image');
+
+    if (!id || !name || !price || !brandId || !categoryId) {
       return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
     }
+
+    let updateData = {
+      name,
+      price: parseFloat(price),
+      gender,
+      brandId: parseInt(brandId),
+      categoryId: parseInt(categoryId),
+      isAvailable
+    };
+
+    if (file && file.size > 0 && file.name) {
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const uniqueName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+      const blob = await put(`products/${uniqueName}`, buffer, {
+        access: 'public',
+        contentType: file.type || 'image/jpeg',
+      });
+      updateData.imageUrl = blob.url;
+    }
+
     const updatedProduct = await prisma.product.update({
-      where: { id },
-      data: { name }
+      where: { id: parseInt(id) },
+      data: updateData
     });
     return NextResponse.json(updatedProduct);
   } catch (error) {
