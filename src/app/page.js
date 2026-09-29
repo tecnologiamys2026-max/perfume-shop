@@ -8,6 +8,7 @@ export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
   const [currency, setCurrency] = useState('USD');
   const [whatsapp, setWhatsapp] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Divisas');
   
   // Filtros
   const [searchQuery, setSearchQuery] = useState('');
@@ -215,6 +216,17 @@ export default function Home() {
             </div>
 
             <div style={{ borderTop: '1px solid #eee', paddingTop: '1rem', marginTop: '1rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Método de pago:</label>
+                <select 
+                  value={paymentMethod} 
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', outline: 'none' }}
+                >
+                  <option value="Divisas">Divisas</option>
+                  <option value="Transferencia o Pago Móvil a Tasa BCV">Transferencia o Pago Móvil a Tasa BCV</option>
+                </select>
+              </div>
               <h3 style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <span>Total:</span>
                 <span>{formatPrice(cart.reduce((sum, item) => sum + parseFloat(item.price), 0))}</span>
@@ -222,7 +234,7 @@ export default function Home() {
               <button 
                 disabled={cart.length === 0 || !whatsapp}
                 onClick={() => {
-                  const text = `Hola, quiero comprar los siguientes productos:\n\n${cart.map(i => `- ${i.name} (${formatPrice(i.price)})`).join('\n')}\n\nTotal: ${formatPrice(cart.reduce((sum, item) => sum + parseFloat(item.price), 0))}`;
+                  const text = `Hola, quiero comprar los siguientes productos:\n\n${cart.map(i => `- ${i.name} (${formatPrice(i.price)})`).join('\n')}\n\nMétodo de pago: ${paymentMethod}\nTotal: ${formatPrice(cart.reduce((sum, item) => sum + parseFloat(item.price), 0))}`;
                   window.open(`https://wa.me/${whatsapp.replace('+', '')}?text=${encodeURIComponent(text)}`, '_blank');
                 }}
                 style={{ width: '100%', padding: '1rem', background: cart.length === 0 || !whatsapp ? '#ccc' : '#66A5AD', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cart.length === 0 || !whatsapp ? 'not-allowed' : 'pointer', fontSize: '1.1rem' }}
