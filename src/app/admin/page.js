@@ -16,6 +16,11 @@ export default function AdminPanel() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Filtros de tabla
+  const [filterCategory, setFilterCategory] = useState('Todas');
+  const [filterBrand, setFilterBrand] = useState('Todas');
+  const [filterGender, setFilterGender] = useState('Todos');
+
   // Estados para Configuración
   const [whatsapp, setWhatsapp] = useState('');
   const [currency, setCurrency] = useState('USD');
@@ -323,6 +328,39 @@ export default function AdminPanel() {
             </form>
 
             <h3 style={{ marginBottom: '1rem' }}>Lista de Productos</h3>
+            
+            {/* Filtros de la tabla */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              <select 
+                value={filterCategory} 
+                onChange={(e) => setFilterCategory(e.target.value)}
+                style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', background: 'white' }}
+              >
+                <option value="Todas">Todas las Categorías</option>
+                {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+              </select>
+
+              <select 
+                value={filterBrand} 
+                onChange={(e) => setFilterBrand(e.target.value)}
+                style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', background: 'white' }}
+              >
+                <option value="Todas">Todas las Marcas</option>
+                {brands.map(brand => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
+              </select>
+
+              <select 
+                value={filterGender} 
+                onChange={(e) => setFilterGender(e.target.value)}
+                style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', background: 'white' }}
+              >
+                <option value="Todos">Todos los Géneros</option>
+                <option value="Damas">Damas</option>
+                <option value="Caballeros">Caballeros</option>
+                <option value="Unisex">Unisex</option>
+                <option value="Infantil">Infantil</option>
+              </select>
+            </div>
             {products.length === 0 ? (
                <p style={{ color: '#888', marginBottom: '1rem' }}>Aún no hay productos reales. Al guardar uno, aparecerá aquí.</p>
             ) : (
@@ -339,7 +377,12 @@ export default function AdminPanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {products.map(p => (
+                    {products.filter(p => {
+                      const matchCategory = filterCategory === 'Todas' || p.categoryId === filterCategory;
+                      const matchBrand = filterBrand === 'Todas' || p.brandId === filterBrand;
+                      const matchGender = filterGender === 'Todos' || p.gender === filterGender;
+                      return matchCategory && matchBrand && matchGender;
+                    }).map(p => (
                       <tr key={p.id}>
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
                           {p.imageUrl ? (

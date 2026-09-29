@@ -12,7 +12,10 @@ export default function Home() {
   // Filtros
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
+  const [selectedBrand, setSelectedBrand] = useState('Todas');
+  const [selectedGender, setSelectedGender] = useState('Todos');
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
 
   useEffect(() => {
     // Al cargar la página, buscamos los productos reales de la base de datos
@@ -29,6 +32,13 @@ export default function Home() {
         const dataCat = await resCat.json();
         if (Array.isArray(dataCat)) {
           setCategories(dataCat);
+        }
+
+        // Cargar marcas
+        const resBrand = await fetch('/api/brands');
+        const dataBrand = await resBrand.json();
+        if (Array.isArray(dataBrand)) {
+          setBrands(dataBrand);
         }
 
         // Cargar configuraciones de WhatsApp y moneda
@@ -67,7 +77,9 @@ export default function Home() {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (product.brand?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Todas' || product.category?.name === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesBrand = selectedBrand === 'Todas' || product.brand?.name === selectedBrand;
+    const matchesGender = selectedGender === 'Todos' || product.gender === selectedGender;
+    return matchesSearch && matchesCategory && matchesBrand && matchesGender;
   });
 
   return (
@@ -117,22 +129,36 @@ export default function Home() {
             style={{ width: '100%', maxWidth: '400px', padding: '1rem', borderRadius: '30px', border: '1px solid #ccc', fontSize: '1rem', margin: '0 auto', display: 'block' }}
           />
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button 
-              onClick={() => setSelectedCategory('Todas')}
-              style={{ background: selectedCategory === 'Todas' ? '#66A5AD' : '#eee', color: selectedCategory === 'Todas' ? 'white' : '#333', border: 'none', padding: '0.5rem 1rem', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <select 
+              value={selectedCategory} 
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              style={{ padding: '0.8rem', borderRadius: '20px', border: '1px solid #ccc', outline: 'none', background: 'white', color: '#333' }}
             >
-              Todas
-            </button>
-            {categories.map(cat => (
-              <button 
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.name)}
-                style={{ background: selectedCategory === cat.name ? '#66A5AD' : '#eee', color: selectedCategory === cat.name ? 'white' : '#333', border: 'none', padding: '0.5rem 1rem', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                {cat.name}
-              </button>
-            ))}
+              <option value="Todas">Todas las Categorías</option>
+              {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+            </select>
+
+            <select 
+              value={selectedBrand} 
+              onChange={(e) => setSelectedBrand(e.target.value)}
+              style={{ padding: '0.8rem', borderRadius: '20px', border: '1px solid #ccc', outline: 'none', background: 'white', color: '#333' }}
+            >
+              <option value="Todas">Todas las Marcas</option>
+              {brands.map(brand => <option key={brand.id} value={brand.name}>{brand.name}</option>)}
+            </select>
+
+            <select 
+              value={selectedGender} 
+              onChange={(e) => setSelectedGender(e.target.value)}
+              style={{ padding: '0.8rem', borderRadius: '20px', border: '1px solid #ccc', outline: 'none', background: 'white', color: '#333' }}
+            >
+              <option value="Todos">Todos los Géneros</option>
+              <option value="Damas">Damas</option>
+              <option value="Caballeros">Caballeros</option>
+              <option value="Unisex">Unisex</option>
+              <option value="Infantil">Infantil</option>
+            </select>
           </div>
 
         </div>
