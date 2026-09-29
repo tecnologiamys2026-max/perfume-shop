@@ -378,8 +378,8 @@ export default function AdminPanel() {
                   </thead>
                   <tbody>
                     {products.filter(p => {
-                      const matchCategory = filterCategory === 'Todas' || p.categoryId === filterCategory;
-                      const matchBrand = filterBrand === 'Todas' || p.brandId === filterBrand;
+                      const matchCategory = filterCategory === 'Todas' || String(p.categoryId) === String(filterCategory);
+                      const matchBrand = filterBrand === 'Todas' || String(p.brandId) === String(filterBrand);
                       const matchGender = filterGender === 'Todos' || p.gender === filterGender;
                       return matchCategory && matchBrand && matchGender;
                     }).map(p => (
