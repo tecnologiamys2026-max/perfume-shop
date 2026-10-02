@@ -389,7 +389,7 @@ export default function AdminPanel() {
       <Toaster position="top-right" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #d4af37' }} />
+          <img src="/logo.jpeg" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #d4af37' }} />
           <h2 style={{ color: '#1a1a1a', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>Panel de Administración</h2>
         </div>
         <button onClick={() => setIsAuthenticated(false)} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 'bold', cursor: 'pointer' }}>Cerrar Sesión</button>
