@@ -744,19 +744,26 @@ export default function AdminPanel() {
             </div>
 
             <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-              {/* Gráfico de Ventas */}
+              {/* Gráfico de Ventas (CSS Puro para evitar errores) */}
               <div style={{ flex: '1 1 500px', background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                <h4 style={{ margin: '0 0 1.5rem', color: '#2c3e50' }}>Ingresos por Día</h4>
-                <div style={{ width: '100%', height: '300px' }}>
-                  <ResponsiveContainer>
-                    <BarChart data={chartData}>
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="Ventas" fill="#66A5AD" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <h4 style={{ margin: '0 0 1.5rem', color: '#2c3e50' }}>Ingresos por Fecha</h4>
+                {chartData.length === 0 ? (
+                  <p style={{ color: '#888' }}>No hay ventas registradas aún.</p>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem', height: '250px', paddingBottom: '0.5rem', borderBottom: '1px solid #eee', overflowX: 'auto' }}>
+                    {chartData.map((data, index) => {
+                      const maxRevenue = Math.max(...chartData.map(d => d.Ventas));
+                      const heightPercent = maxRevenue > 0 ? (data.Ventas / maxRevenue) * 100 : 0;
+                      return (
+                        <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: '50px' }}>
+                          <span style={{ fontSize: '0.8rem', color: '#666', fontWeight: 'bold' }}>${data.Ventas.toFixed(0)}</span>
+                          <div style={{ width: '100%', maxWidth: '40px', height: `${Math.max(heightPercent, 5)}%`, background: '#66A5AD', borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }}></div>
+                          <span style={{ fontSize: '0.75rem', color: '#888', whiteSpace: 'nowrap' }}>{data.date.substring(0, 5)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Productos Más Vendidos */}
