@@ -264,6 +264,31 @@ export default function AdminPanel() {
     toast.success('Pedido cargado para editar');
   };
 
+  // --- Estadísticas ---
+  const completedOrders = orders.filter(o => o.status === 'COMPLETED');
+  const totalRevenue = completedOrders.reduce((sum, o) => sum + parseFloat(o.totalAmount), 0);
+  
+  // Agrupar ventas por fecha para el gráfico
+  const salesByDate = completedOrders.reduce((acc, order) => {
+    const date = new Date(order.createdAt).toLocaleDateString();
+    if (!acc[date]) acc[date] = { date, Ventas: 0 };
+    acc[date].Ventas += parseFloat(order.totalAmount);
+    return acc;
+  }, {});
+  const chartData = Object.values(salesByDate);
+
+  // Productos más vendidos
+  const productSalesMap = {};
+  completedOrders.forEach(order => {
+    order.items?.forEach(item => {
+      const pId = item.productId;
+      if (!productSalesMap[pId]) productSalesMap[pId] = { name: item.product?.name, quantity: 0, revenue: 0 };
+      productSalesMap[pId].quantity += item.quantity;
+      productSalesMap[pId].revenue += item.quantity * parseFloat(item.price);
+    });
+  });
+  const topProducts = Object.values(productSalesMap).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
+
   const handleCheckout = async () => {
     if (cart.length === 0) return toast.error('El carrito está vacío');
     toast.loading('Procesando venta...', { id: 'checkout' });
