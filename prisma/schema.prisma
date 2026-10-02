@@ -41,6 +41,13 @@ model Product {
 
   isAvailable Boolean  @default(true)
 
+  // Nuevos campos para inventario
+  costPrice   Decimal  @default(0) @db.Decimal(10, 2)
+  stock       Int      @default(0)
+
+  // Relación con facturación
+  orderItems  OrderItem[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -49,6 +56,36 @@ model Setting {
   id        Int      @id @default(autoincrement())
   key       String   @unique
   value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  customerName  String?     
+  customerPhone String?     
+  totalAmount   Decimal     @db.Decimal(10, 2)
+  status        String      @default("COMPLETED") // PENDING, COMPLETED, CANCELLED
+  paymentMethod String?     // EFECTIVO, TARJETA, TRANSFERENCIA
+  
+  items         OrderItem[] 
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  quantity  Int      
+  price     Decimal  @db.Decimal(10, 2) 
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
