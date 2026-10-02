@@ -117,7 +117,7 @@ export default function Home() {
 
       <section className="hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
         <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: '300' }}>Bienvenidos a</h2>
-        <img src="/logo.jpeg" alt="Mayra Shop Logo" style={{ width: '180px', height: '180px', objectFit: 'contain', borderRadius: '50%', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', border: '4px solid #d4af37' }} />
+        <img src="/logo.jpeg" alt="Mayra Shop Logo" style={{ width: '180px', height: '180px', objectFit: 'contain', backgroundColor: 'white', borderRadius: '50%', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', border: '4px solid #d4af37' }} />
         <p style={{ marginTop: '0.5rem' }}>Tu esencia, tu estilo. Descubre nuestra colección exclusiva.</p>
       </section>
 
