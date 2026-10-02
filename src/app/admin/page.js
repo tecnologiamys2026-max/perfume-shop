@@ -35,6 +35,14 @@ export default function AdminPanel() {
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [invoiceOrder, setInvoiceOrder] = useState(null);
 
+  // Filtros de fecha (Por defecto: 1 mes atrás hasta hoy)
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+
   // Estado para modales personalizados
   const [modal, setModal] = useState({ isOpen: false, mode: '', type: '', id: null, name: '' });
   const [editingProduct, setEditingProduct] = useState(null);
@@ -265,7 +273,17 @@ export default function AdminPanel() {
   };
 
   // --- Estadísticas ---
-  const completedOrders = orders.filter(o => o.status === 'COMPLETED');
+  const filteredOrdersForStats = orders.filter(o => {
+    if (!startDate || !endDate) return true;
+    const d = new Date(o.createdAt);
+    const start = new Date(startDate);
+    // Ajustar end al final del día
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    return d >= start && d <= end;
+  });
+
+  const completedOrders = filteredOrdersForStats.filter(o => o.status === 'COMPLETED');
   const totalRevenue = completedOrders.reduce((sum, o) => sum + parseFloat(o.totalAmount), 0);
   
   // Agrupar ventas por fecha para el gráfico
@@ -752,6 +770,18 @@ export default function AdminPanel() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <h3 style={{ margin: 0, color: '#2C3E50' }}>📊 Dashboard y Estadísticas</h3>
             
+            {/* Filtros de Fecha */}
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'white', padding: '1rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={{ fontSize: '0.8rem', color: '#7f8c8d', fontWeight: 'bold', marginBottom: '0.3rem' }}>FECHA INICIAL</label>
+                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', outline: 'none' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={{ fontSize: '0.8rem', color: '#7f8c8d', fontWeight: 'bold', marginBottom: '0.3rem' }}>FECHA FINAL</label>
+                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', outline: 'none' }} />
+              </div>
+            </div>
+
             {/* Tarjetas de Resumen */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', borderLeft: '5px solid #27ae60' }}>
