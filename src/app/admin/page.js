@@ -32,6 +32,7 @@ export default function AdminPanel() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
   const [posSearch, setPosSearch] = useState('');
+  const [editingOrderId, setEditingOrderId] = useState(null);
 
   // Estado para modales personalizados
   const [modal, setModal] = useState({ isOpen: false, mode: '', type: '', id: null, name: '' });
@@ -253,20 +254,40 @@ export default function AdminPanel() {
     }
   };
 
+  const loadPendingOrder = (order) => {
+    setCustomerName(order.customerName === "Cliente WhatsApp" ? "" : order.customerName || '');
+    setCustomerPhone(order.customerPhone || '');
+    setPaymentMethod(order.paymentMethod === "POR ACORDAR" ? "EFECTIVO" : order.paymentMethod || 'EFECTIVO');
+    setEditingOrderId(order.id);
+    setCart(order.items.map(i => ({ productId: i.productId, name: i.product?.name, price: parseFloat(i.price), quantity: i.quantity })));
+    toast.success('Pedido cargado para editar');
+  };
+
   const handleCheckout = async () => {
     if (cart.length === 0) return toast.error('El carrito está vacío');
     toast.loading('Procesando venta...', { id: 'checkout' });
     try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerName, customerPhone, paymentMethod, items: cart })
-      });
+      let response;
+      if (editingOrderId) {
+        response = await fetch('/api/orders', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingOrderId, status: 'COMPLETED', customerName, customerPhone, paymentMethod, items: cart })
+        });
+      } else {
+        response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerName, customerPhone, paymentMethod, items: cart })
+        });
+      }
+
       if (!response.ok) throw new Error();
       toast.success('Venta registrada con éxito', { id: 'checkout' });
       setCart([]);
       setCustomerName('');
       setCustomerPhone('');
+      setEditingOrderId(null);
       loadData(); 
     } catch (error) {
       toast.error('Error al procesar la venta', { id: 'checkout' });
@@ -549,12 +570,29 @@ export default function AdminPanel() {
         )}
 
         {activeTab === 'pos' && (
-          <div style={{ display: 'flex', gap: '2rem' }}>
-            {/* Lista de productos para vender */}
-            <div style={{ flex: 2 }}>
-              <h3 style={{ marginBottom: '1rem' }}>Punto de Venta</h3>
-              <input 
-                type="text" 
+          <div style={{ display: 'flex', gap: '2rem', flexDirection: 'column' }}>
+            {/* Pedidos Pendientes de WhatsApp (Movemos esto al principio del POS) */}
+            {orders.filter(o => o.status === 'PENDING').length > 0 && (
+              <div style={{ background: '#e0f7fa', padding: '1rem', borderRadius: '12px', border: '1px solid #bce8f1' }}>
+                <h3 style={{ marginBottom: '1rem', color: '#00796b' }}>🔔 Pedidos Pendientes de WhatsApp</h3>
+                <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                  {orders.filter(o => o.status === 'PENDING').map(o => (
+                    <div key={o.id} style={{ background: 'white', padding: '1rem', borderRadius: '8px', minWidth: '250px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
+                      <p style={{ margin: '0 0 0.5rem', fontWeight: 'bold' }}>Pedido #{o.id}</p>
+                      <p style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', color: '#666' }}>{o.items?.length} productos (${parseFloat(o.totalAmount).toFixed(2)})</p>
+                      <button onClick={() => loadPendingOrder(o)} style={{ width: '100%', padding: '0.5rem', background: '#00796b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Cargar al Carrito</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '2rem' }}>
+              {/* Lista de productos para vender */}
+              <div style={{ flex: 2 }}>
+                <h3 style={{ marginBottom: '1rem' }}>Catálogo de Productos</h3>
+                <input 
+                  type="text" 
                 placeholder="🔍 Buscar producto en el catálogo..." 
                 value={posSearch}
                 onChange={(e) => setPosSearch(e.target.value)}
@@ -574,7 +612,12 @@ export default function AdminPanel() {
 
             {/* Carrito de Compras (Factura) */}
             <div style={{ flex: 1, background: '#f9f9f9', padding: '1.5rem', borderRadius: '12px', border: '1px solid #eee', alignSelf: 'start', position: 'sticky', top: '20px' }}>
-              <h3 style={{ marginBottom: '1.5rem', borderBottom: '2px solid #66A5AD', paddingBottom: '0.5rem' }}>Nueva Factura</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '2px solid #66A5AD', paddingBottom: '0.5rem' }}>
+                <h3 style={{ margin: 0 }}>{editingOrderId ? `Editando Pedido #${editingOrderId}` : 'Nueva Factura'}</h3>
+                {editingOrderId && (
+                  <button onClick={() => { setEditingOrderId(null); setCart([]); setCustomerName(''); setCustomerPhone(''); }} style={{ background: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem' }}>Cancelar Edición</button>
+                )}
+              </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
                 <input type="text" placeholder="Nombre del Cliente (Opcional)" value={customerName} onChange={e => setCustomerName(e.target.value)} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} />
@@ -609,9 +652,10 @@ export default function AdminPanel() {
               </div>
 
               <button onClick={handleCheckout} disabled={cart.length === 0} style={{ width: '100%', background: cart.length > 0 ? '#2C3E50' : '#ccc', color: 'white', padding: '1rem', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cart.length > 0 ? 'pointer' : 'not-allowed', fontSize: '1.1rem' }}>
-                Procesar Venta
+                {editingOrderId ? 'Guardar y Facturar' : 'Procesar Venta'}
               </button>
             </div>
+          </div>
           </div>
         )}
 
@@ -636,39 +680,6 @@ export default function AdminPanel() {
                       </li>
                     ))}
                   </ul>
-                )}
-              </div>
-            </div>
-
-            {/* Pedidos Pendientes */}
-            <div>
-              <h3 style={{ marginBottom: '1rem', color: '#3498db' }}>📦 Pedidos Pendientes (WhatsApp)</h3>
-              <div style={{ background: '#fff', border: '1px solid #bce8f1', borderRadius: '8px', padding: '1rem' }}>
-                {orders.filter(o => o.status === 'PENDING').length === 0 ? (
-                  <p style={{ color: '#888', margin: 0 }}>No hay pedidos pendientes en este momento.</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {orders.filter(o => o.status === 'PENDING').map(o => (
-                      <div key={o.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '1.5rem', background: '#f9f9f9' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid #ddd', paddingBottom: '0.5rem' }}>
-                          <div>
-                            <strong style={{ fontSize: '1.1rem' }}>Pedido #{o.id}</strong>
-                            <p style={{ margin: '0.2rem 0 0', color: '#666', fontSize: '0.9rem' }}>{new Date(o.createdAt).toLocaleString()}</p>
-                          </div>
-                          <span style={{ fontWeight: 'bold', color: '#27ae60', fontSize: '1.2rem' }}>${parseFloat(o.totalAmount).toFixed(2)}</span>
-                        </div>
-                        <ul style={{ paddingLeft: '1.2rem', marginBottom: '1.5rem', fontSize: '1rem', color: '#333' }}>
-                          {o.items?.map(i => (
-                            <li key={i.id} style={{ marginBottom: '0.5rem' }}><strong>{i.quantity}x</strong> {i.product?.name} <span style={{ color: '#888' }}>(${parseFloat(i.price).toFixed(2)} c/u)</span></li>
-                          ))}
-                        </ul>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                          <button onClick={() => handleUpdateOrder(o.id, 'COMPLETED')} style={{ background: '#2ecc71', color: 'white', padding: '0.8rem 1.5rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>✅ Aprobar y Descontar Stock</button>
-                          <button onClick={() => handleUpdateOrder(o.id, 'CANCELLED')} style={{ background: '#e74c3c', color: 'white', padding: '0.8rem 1.5rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>❌ Cancelar Pedido</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 )}
               </div>
             </div>

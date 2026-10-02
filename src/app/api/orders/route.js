@@ -78,7 +78,7 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
-    const { id, status } = await request.json();
+    const { id, status, customerName, customerPhone, paymentMethod, items } = await request.json();
     
     // Si cambia a COMPLETED, necesitamos restar el inventario
     if (status === 'COMPLETED') {
@@ -88,8 +88,23 @@ export async function PUT(request) {
           include: { items: true }
         });
         
+        let finalItems = order.items;
+        let updateData = { status };
+
+        if (items) { // Si están editando el carrito desde el POS
+          finalItems = items;
+          const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          updateData = {
+            status, customerName, customerPhone, paymentMethod, totalAmount,
+            items: {
+              deleteMany: {},
+              create: items.map(item => ({ productId: item.productId, quantity: item.quantity, price: item.price }))
+            }
+          };
+        }
+        
         if (order.status !== 'COMPLETED') {
-          for (const item of order.items) {
+          for (const item of finalItems) {
             await tx.product.update({
               where: { id: item.productId },
               data: { stock: { decrement: item.quantity } }
@@ -99,7 +114,7 @@ export async function PUT(request) {
         
         return await tx.order.update({
           where: { id },
-          data: { status }
+          data: updateData
         });
       });
       return NextResponse.json(result);
