@@ -272,18 +272,22 @@ export default function AdminPanel() {
     toast.success('Pedido cargado para editar');
   };
 
-  // --- Estadísticas ---
-  const filteredOrdersForStats = orders.filter(o => {
+  // --- Estadísticas y Filtros ---
+  const filteredOrders = orders.filter(o => {
     if (!startDate || !endDate) return true;
     const d = new Date(o.createdAt);
-    const start = new Date(startDate);
-    // Ajustar end al final del día
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
+    
+    // Evitar problemas de zona horaria parseando como local
+    const [yearStart, monthStart, dayStart] = startDate.split('-');
+    const start = new Date(yearStart, monthStart - 1, dayStart, 0, 0, 0, 0);
+    
+    const [yearEnd, monthEnd, dayEnd] = endDate.split('-');
+    const end = new Date(yearEnd, monthEnd - 1, dayEnd, 23, 59, 59, 999);
+    
     return d >= start && d <= end;
   });
 
-  const completedOrders = filteredOrdersForStats.filter(o => o.status === 'COMPLETED');
+  const completedOrders = filteredOrders.filter(o => o.status === 'COMPLETED');
   const totalRevenue = completedOrders.reduce((sum, o) => sum + parseFloat(o.totalAmount), 0);
   
   // Agrupar ventas por fecha para el gráfico
@@ -388,16 +392,30 @@ export default function AdminPanel() {
           <img src="/logo.jpg" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #66A5AD' }} />
           <h2 style={{ color: '#2C3E50', margin: 0 }}>Panel de Administración - Mayra Shop</h2>
         </div>
-        <button onClick={() => setIsAuthenticated(false)} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 'bold', cursor: 'pointer' }}>Cerrar Sesión</button>
-      </div>
-      
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+        <button onClick={() => setIsAuthenticated(false)} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 'bold', cursor: 'pointer' }}>Cerrar Sesión</button>      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <button onClick={() => setActiveTab('productos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'productos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'productos' ? 'white' : 'black' }}>Gestión de Productos</button>
         <button onClick={() => setActiveTab('pos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pos' ? 'white' : 'black' }}>Facturación (POS)</button>
         <button onClick={() => setActiveTab('pedidos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pedidos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pedidos' ? 'white' : 'black' }}>Pedidos y Alertas</button>
         <button onClick={() => setActiveTab('dashboard')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'dashboard' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'dashboard' ? 'white' : 'black' }}>Dashboard y Reportes</button>
         <button onClick={() => setActiveTab('marcas')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'marcas' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'marcas' ? 'white' : 'black' }}>Categorías y Marcas</button>
         <button onClick={() => setActiveTab('config')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'config' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'config' ? 'white' : 'black' }}>Configuración Global</button>
+      </div>
+
+      {/* Filtros de Fecha Globales para Pedidos y Dashboard */}
+      {(activeTab === 'dashboard' || activeTab === 'pedidos') && (
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'white', padding: '1rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', flexWrap: 'wrap', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <label style={{ fontSize: '0.8rem', color: '#7f8c8d', fontWeight: 'bold', marginBottom: '0.3rem' }}>FECHA INICIAL</label>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', outline: 'none' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <label style={{ fontSize: '0.8rem', color: '#7f8c8d', fontWeight: 'bold', marginBottom: '0.3rem' }}>FECHA FINAL</label>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', outline: 'none' }} />
+          </div>
+        </div>
+      )}
+
+      <div>
       </div>
 
       <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
@@ -743,21 +761,25 @@ export default function AdminPanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.filter(o => o.status !== 'PENDING').slice(0, 15).map(o => (
-                      <tr key={o.id}>
-                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>#{o.id}</td>
-                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
-                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>${parseFloat(o.totalAmount).toFixed(2)}</td>
-                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
-                          <span style={{ background: o.status === 'COMPLETED' ? '#e8f5e9' : '#ffebee', color: o.status === 'COMPLETED' ? '#2e7d32' : '#c62828', padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', display: 'inline-block', marginBottom: '0.5rem' }}>
-                            {o.status === 'COMPLETED' ? 'Completado' : 'Cancelado'}
-                          </span>
-                          {o.status === 'COMPLETED' && (
-                            <button onClick={() => setInvoiceOrder(o)} style={{ display: 'block', background: '#34495e', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>🖨️ Ver Factura</button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredOrders.filter(o => o.status !== 'PENDING').length === 0 ? (
+                      <tr><td colSpan="4" style={{ padding: '1rem', textAlign: 'center' }}>No hay ventas registradas en estas fechas.</td></tr>
+                    ) : (
+                      filteredOrders.filter(o => o.status !== 'PENDING').map(o => (
+                        <tr key={o.id}>
+                          <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>#{o.id}</td>
+                          <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
+                          <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>${parseFloat(o.totalAmount).toFixed(2)}</td>
+                          <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
+                            <span style={{ background: o.status === 'COMPLETED' ? '#e8f5e9' : '#ffebee', color: o.status === 'COMPLETED' ? '#2e7d32' : '#c62828', padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', display: 'inline-block', marginBottom: '0.5rem' }}>
+                              {o.status === 'COMPLETED' ? 'Completado' : 'Cancelado'}
+                            </span>
+                            {o.status === 'COMPLETED' && (
+                              <button onClick={() => setInvoiceOrder(o)} style={{ display: 'block', background: '#34495e', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>🖨️ Ver Factura</button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -770,18 +792,6 @@ export default function AdminPanel() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <h3 style={{ margin: 0, color: '#2C3E50' }}>📊 Dashboard y Estadísticas</h3>
             
-            {/* Filtros de Fecha */}
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'white', padding: '1rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <label style={{ fontSize: '0.8rem', color: '#7f8c8d', fontWeight: 'bold', marginBottom: '0.3rem' }}>FECHA INICIAL</label>
-                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', outline: 'none' }} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <label style={{ fontSize: '0.8rem', color: '#7f8c8d', fontWeight: 'bold', marginBottom: '0.3rem' }}>FECHA FINAL</label>
-                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', outline: 'none' }} />
-              </div>
-            </div>
-
             {/* Tarjetas de Resumen */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', borderLeft: '5px solid #27ae60' }}>
