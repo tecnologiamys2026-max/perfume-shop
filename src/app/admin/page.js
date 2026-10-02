@@ -389,19 +389,19 @@ export default function AdminPanel() {
       <Toaster position="top-right" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #66A5AD' }} />
-          <h2 style={{ color: '#2C3E50', margin: 0 }}>Panel de Administración - Mayra Shop</h2>
+          <img src="/logo.jpg" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #d4af37' }} />
+          <h2 style={{ color: '#1a1a1a', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>Panel de Administración</h2>
         </div>
         <button onClick={() => setIsAuthenticated(false)} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 'bold', cursor: 'pointer' }}>Cerrar Sesión</button>
       </div>
       
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        <button onClick={() => setActiveTab('productos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'productos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'productos' ? 'white' : 'black' }}>Gestión de Productos</button>
-        <button onClick={() => setActiveTab('pos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pos' ? 'white' : 'black' }}>Facturación (POS)</button>
-        <button onClick={() => setActiveTab('pedidos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pedidos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pedidos' ? 'white' : 'black' }}>Pedidos y Alertas</button>
-        <button onClick={() => setActiveTab('dashboard')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'dashboard' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'dashboard' ? 'white' : 'black' }}>Dashboard y Reportes</button>
-        <button onClick={() => setActiveTab('marcas')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'marcas' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'marcas' ? 'white' : 'black' }}>Categorías y Marcas</button>
-        <button onClick={() => setActiveTab('config')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'config' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'config' ? 'white' : 'black' }}>Configuración Global</button>
+        <button onClick={() => setActiveTab('productos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer', background: activeTab === 'productos' ? '#1a1a1a' : '#f0f0f0', color: activeTab === 'productos' ? '#d4af37' : '#333', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>Productos</button>
+        <button onClick={() => setActiveTab('pos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer', background: activeTab === 'pos' ? '#1a1a1a' : '#f0f0f0', color: activeTab === 'pos' ? '#d4af37' : '#333', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>POS</button>
+        <button onClick={() => setActiveTab('pedidos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer', background: activeTab === 'pedidos' ? '#1a1a1a' : '#f0f0f0', color: activeTab === 'pedidos' ? '#d4af37' : '#333', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>Pedidos</button>
+        <button onClick={() => setActiveTab('dashboard')} style={{ padding: '0.8rem 1.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer', background: activeTab === 'dashboard' ? '#1a1a1a' : '#f0f0f0', color: activeTab === 'dashboard' ? '#d4af37' : '#333', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>Reportes</button>
+        <button onClick={() => setActiveTab('marcas')} style={{ padding: '0.8rem 1.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer', background: activeTab === 'marcas' ? '#1a1a1a' : '#f0f0f0', color: activeTab === 'marcas' ? '#d4af37' : '#333', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>Categorías</button>
+        <button onClick={() => setActiveTab('config')} style={{ padding: '0.8rem 1.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer', background: activeTab === 'config' ? '#1a1a1a' : '#f0f0f0', color: activeTab === 'config' ? '#d4af37' : '#333', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>Config</button>
       </div>
 
       {/* Filtros de Fecha Globales para Pedidos y Dashboard */}

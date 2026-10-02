@@ -89,8 +89,8 @@ export default function Home() {
 
   return (
     <main>
-      <nav className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem' }}>
-        <h1 style={{ color: '#2C3E50', margin: 0 }}>Mayra Shop</h1>
+      <nav className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem' }}>
+        <h1 style={{ color: '#1a1a1a', margin: 0, textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>Mayra Shop</h1>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           {whatsapp && (
             <a href={`https://wa.me/${whatsapp.replace('+', '')}`} target="_blank" rel="noreferrer" style={{ background: '#25D366', color: 'white', padding: '0.5rem 1rem', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', fontWeight: 'bold', transition: 'transform 0.2s', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }} title="Contáctanos">
@@ -101,10 +101,10 @@ export default function Home() {
               </div>
             </a>
           )}
-          <button onClick={() => setCartOpen(true)} style={{ background: '#66A5AD', color: 'white', padding: '0.8rem 1.5rem', borderRadius: '30px', border: 'none', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
+          <button onClick={() => setCartOpen(true)} style={{ background: '#1a1a1a', color: '#d4af37', padding: '0.8rem 1.5rem', borderRadius: '4px', border: '1px solid #d4af37', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
             🛒 Carrito
             {cart.length > 0 && (
-              <span style={{ background: '#e74c3c', padding: '0.2rem 0.6rem', borderRadius: '50%', fontSize: '0.8rem' }}>
+              <span style={{ background: '#d4af37', color: '#1a1a1a', padding: '0.2rem 0.6rem', borderRadius: '50%', fontSize: '0.8rem', fontWeight: 'bold' }}>
                 {cart.length}
               </span>
             )}
@@ -116,8 +116,8 @@ export default function Home() {
       <Toaster position="top-right" />
 
       <section className="hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-        <h2 style={{ margin: 0 }}>Bienvenidos a</h2>
-        <img src="/logo.jpg" alt="Mayra Shop Logo" style={{ width: '180px', height: '180px', objectFit: 'contain', borderRadius: '50%', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '4px solid white' }} />
+        <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: '300' }}>Bienvenidos a</h2>
+        <img src="/logo.jpg" alt="Mayra Shop Logo" style={{ width: '180px', height: '180px', objectFit: 'contain', borderRadius: '50%', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', border: '4px solid #d4af37' }} />
         <p style={{ marginTop: '0.5rem' }}>Tu esencia, tu estilo. Descubre nuestra colección exclusiva.</p>
       </section>
 
@@ -194,10 +194,10 @@ export default function Home() {
 
       {/* Modal / Sidebar del Carrito */}
       {cartOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', justifyContent: 'flex-end' }}>
-          <div style={{ background: 'white', width: '100%', maxWidth: '400px', height: '100vh', padding: '2rem', display: 'flex', flexDirection: 'column', boxShadow: '-5px 0 15px rgba(0,0,0,0.1)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 200, display: 'flex', justifyContent: 'flex-end', backdropFilter: 'blur(3px)' }}>
+          <div style={{ background: 'white', width: '100%', maxWidth: '400px', height: '100vh', padding: '2rem', display: 'flex', flexDirection: 'column', boxShadow: '-5px 0 15px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '1rem', marginBottom: '1rem' }}>
-              <h2 style={{ margin: 0, color: '#2C3E50' }}>Tu Carrito</h2>
+              <h2 style={{ margin: 0, color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '1px' }}>Tu Carrito</h2>
               <button onClick={() => setCartOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>✖</button>
             </div>
             
@@ -220,16 +220,16 @@ export default function Home() {
             </div>
 
             <div style={{ borderTop: '1px solid #eee', paddingTop: '1rem', marginTop: '1rem' }}>
-              <div style={{ marginBottom: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px', border: '1px dashed #ccc' }}>
-                <p style={{ margin: 0, fontWeight: 'bold', color: '#2C3E50', fontSize: '0.95rem' }}>Métodos de pago aceptados:</p>
-                <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.2rem', fontSize: '0.9rem', color: '#555' }}>
+              <div style={{ marginBottom: '1rem', padding: '1rem', background: '#fff', borderRadius: '4px', border: '1px solid #d4af37' }}>
+                <p style={{ margin: 0, fontWeight: 'bold', color: '#1a1a1a', fontSize: '0.95rem' }}>Métodos de pago aceptados:</p>
+                <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.2rem', fontSize: '0.9rem', color: '#333' }}>
                   <li>Divisas (Efectivo)</li>
                   <li>Transferencia o Pago Móvil (Tasa BCV)</li>
                 </ul>
               </div>
-              <h3 style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h3 style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', color: '#1a1a1a', textTransform: 'uppercase' }}>
                 <span>Total:</span>
-                <span>{formatPrice(cart.reduce((sum, item) => sum + parseFloat(item.price), 0))}</span>
+                <span style={{ color: '#d4af37' }}>{formatPrice(cart.reduce((sum, item) => sum + parseFloat(item.price), 0))}</span>
               </h3>
               <button 
                 disabled={cart.length === 0 || !whatsapp}
