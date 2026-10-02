@@ -392,7 +392,10 @@ export default function AdminPanel() {
           <img src="/logo.jpg" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #66A5AD' }} />
           <h2 style={{ color: '#2C3E50', margin: 0 }}>Panel de Administración - Mayra Shop</h2>
         </div>
-        <button onClick={() => setIsAuthenticated(false)} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 'bold', cursor: 'pointer' }}>Cerrar Sesión</button>      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+        <button onClick={() => setIsAuthenticated(false)} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 'bold', cursor: 'pointer' }}>Cerrar Sesión</button>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <button onClick={() => setActiveTab('productos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'productos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'productos' ? 'white' : 'black' }}>Gestión de Productos</button>
         <button onClick={() => setActiveTab('pos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pos' ? 'white' : 'black' }}>Facturación (POS)</button>
         <button onClick={() => setActiveTab('pedidos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pedidos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pedidos' ? 'white' : 'black' }}>Pedidos y Alertas</button>
@@ -414,9 +417,6 @@ export default function AdminPanel() {
           </div>
         </div>
       )}
-
-      <div>
-      </div>
 
       <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
         
