@@ -21,10 +21,15 @@ export default function AdminPanel() {
   const [filterBrand, setFilterBrand] = useState('Todas');
   const [filterGender, setFilterGender] = useState('Todos');
 
-  // Estados para Configuración
   const [whatsapp, setWhatsapp] = useState('');
   const [currency, setCurrency] = useState('USD');
   
+  // Estados para POS
+  const [cart, setCart] = useState([]);
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
+
   // Estado para modales personalizados
   const [modal, setModal] = useState({ isOpen: false, mode: '', type: '', id: null, name: '' });
   const [editingProduct, setEditingProduct] = useState(null);
@@ -221,6 +226,45 @@ export default function AdminPanel() {
     }
   };
 
+  const addToCart = (product) => {
+    if (product.stock <= 0) {
+      toast.error('No hay stock de este producto');
+      return;
+    }
+    const existingItem = cart.find(item => item.productId === product.id);
+    if (existingItem) {
+      if (existingItem.quantity >= product.stock) {
+        toast.error('No hay más stock disponible');
+        return;
+      }
+      setCart(cart.map(item => item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item));
+    } else {
+      setCart([...cart, { productId: product.id, name: product.name, price: parseFloat(product.price), quantity: 1 }]);
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (cart.length === 0) return toast.error('El carrito está vacío');
+    toast.loading('Procesando venta...', { id: 'checkout' });
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerName, customerPhone, paymentMethod, items: cart })
+      });
+      if (!response.ok) throw new Error();
+      toast.success('Venta registrada con éxito', { id: 'checkout' });
+      setCart([]);
+      setCustomerName('');
+      setCustomerPhone('');
+      loadData(); 
+    } catch (error) {
+      toast.error('Error al procesar la venta', { id: 'checkout' });
+    }
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
   if (!isAuthenticated) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#F8FBFA' }}>
@@ -258,6 +302,7 @@ export default function AdminPanel() {
       
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
         <button onClick={() => setActiveTab('productos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'productos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'productos' ? 'white' : 'black' }}>Gestión de Productos</button>
+        <button onClick={() => setActiveTab('pos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pos' ? 'white' : 'black' }}>Facturación (POS)</button>
         <button onClick={() => setActiveTab('marcas')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'marcas' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'marcas' ? 'white' : 'black' }}>Categorías y Marcas</button>
         <button onClick={() => setActiveTab('config')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'config' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'config' ? 'white' : 'black' }}>Configuración Global</button>
       </div>
@@ -472,6 +517,66 @@ export default function AdminPanel() {
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'pos' && (
+          <div style={{ display: 'flex', gap: '2rem' }}>
+            {/* Lista de productos para vender */}
+            <div style={{ flex: 2 }}>
+              <h3 style={{ marginBottom: '1rem' }}>Punto de Venta</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
+                {products.filter(p => p.isAvailable).map(p => (
+                  <div key={p.id} onClick={() => addToCart(p)} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '1rem', cursor: p.stock > 0 ? 'pointer' : 'not-allowed', background: 'white', opacity: p.stock > 0 ? 1 : 0.5, textAlign: 'center', transition: 'transform 0.2s' }}>
+                    <img src={p.imageUrl || '/logo.jpg'} alt={p.name} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />
+                    <h4 style={{ margin: 0, fontSize: '0.9rem' }}>{p.name}</h4>
+                    <p style={{ margin: '0.5rem 0', fontWeight: 'bold', color: '#66A5AD' }}>${parseFloat(p.price).toFixed(2)}</p>
+                    <p style={{ fontSize: '0.8rem', color: p.stock > 5 ? '#2e7d32' : p.stock > 0 ? '#f39c12' : '#e74c3c', margin: 0 }}>Stock: {p.stock || 0}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Carrito de Compras (Factura) */}
+            <div style={{ flex: 1, background: '#f9f9f9', padding: '1.5rem', borderRadius: '12px', border: '1px solid #eee', alignSelf: 'start', position: 'sticky', top: '20px' }}>
+              <h3 style={{ marginBottom: '1.5rem', borderBottom: '2px solid #66A5AD', paddingBottom: '0.5rem' }}>Nueva Factura</h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                <input type="text" placeholder="Nombre del Cliente (Opcional)" value={customerName} onChange={e => setCustomerName(e.target.value)} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} />
+                <input type="text" placeholder="Teléfono (Opcional)" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} />
+                <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }}>
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="TARJETA">Tarjeta</option>
+                  <option value="TRANSFERENCIA">Transferencia / Zelle</option>
+                </select>
+              </div>
+
+              <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1.5rem', paddingRight: '0.5rem' }}>
+                {cart.length === 0 ? <p style={{ color: '#888', textAlign: 'center' }}>Carrito vacío</p> : (
+                  cart.map(item => (
+                    <div key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', background: 'white', padding: '0.8rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontWeight: 'bold', fontSize: '0.9rem' }}>{item.name}</p>
+                        <p style={{ margin: 0, color: '#666', fontSize: '0.8rem' }}>${item.price.toFixed(2)} x {item.quantity}</p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontWeight: 'bold' }}>${(item.price * item.quantity).toFixed(2)}</span>
+                        <button onClick={() => setCart(cart.filter(c => c.productId !== item.productId))} style={{ background: '#ffcccc', color: '#e74c3c', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>X</button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 'bold', borderTop: '2px dashed #ccc', paddingTop: '1rem', marginBottom: '1.5rem' }}>
+                <span>TOTAL:</span>
+                <span>${cartTotal.toFixed(2)}</span>
+              </div>
+
+              <button onClick={handleCheckout} disabled={cart.length === 0} style={{ width: '100%', background: cart.length > 0 ? '#2C3E50' : '#ccc', color: 'white', padding: '1rem', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cart.length > 0 ? 'pointer' : 'not-allowed', fontSize: '1.1rem' }}>
+                Procesar Venta
+              </button>
             </div>
           </div>
         )}
