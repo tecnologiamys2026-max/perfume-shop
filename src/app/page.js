@@ -61,6 +61,11 @@ export default function Home() {
   };
 
   const addToCart = (product) => {
+    const countInCart = cart.filter(p => p.id === product.id).length;
+    if (countInCart >= product.stock) {
+      toast.error(`Solo quedan ${product.stock} unidades disponibles`, { style: { background: '#e74c3c', color: 'white' } });
+      return;
+    }
     setCart([...cart, product]);
     toast.success(`${product.name} añadido al carrito!`, {
       style: {
@@ -73,7 +78,7 @@ export default function Home() {
 
   // Lógica de filtrado
   const filteredProducts = products.filter(product => {
-    if (!product.isAvailable) return false;
+    if (!product.isAvailable || product.stock <= 0) return false;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (product.brand?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Todas' || product.category?.name === selectedCategory;
@@ -228,13 +233,46 @@ export default function Home() {
               </h3>
               <button 
                 disabled={cart.length === 0 || !whatsapp}
-                onClick={() => {
-                  const text = `Hola, quiero comprar los siguientes productos:\n\n${cart.map(i => `- ${i.name} (${formatPrice(i.price)})`).join('\n')}\n\nTotal: ${formatPrice(cart.reduce((sum, item) => sum + parseFloat(item.price), 0))}`;
-                  window.open(`https://wa.me/${whatsapp.replace('+', '')}?text=${encodeURIComponent(text)}`, '_blank');
+                onClick={async () => {
+                  toast.loading('Registrando pedido...', { id: 'order' });
+                  
+                  // Agrupar items por id y contar cantidad
+                  const groupedItemsMap = new Map();
+                  cart.forEach(item => {
+                    if (groupedItemsMap.has(item.id)) {
+                      groupedItemsMap.get(item.id).quantity += 1;
+                    } else {
+                      groupedItemsMap.set(item.id, { productId: item.id, name: item.name, price: parseFloat(item.price), quantity: 1 });
+                    }
+                  });
+                  const groupedItems = Array.from(groupedItemsMap.values());
+
+                  try {
+                    await fetch('/api/orders', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        customerName: "Cliente WhatsApp",
+                        customerPhone: "",
+                        paymentMethod: "POR ACORDAR",
+                        status: "PENDING",
+                        items: groupedItems
+                      })
+                    });
+                    toast.success('Pedido registrado', { id: 'order' });
+
+                    const text = `Hola, quiero hacer un pedido:\n\n${groupedItems.map(i => `- ${i.name} x${i.quantity} (${formatPrice(i.price * i.quantity)})`).join('\n')}\n\nTotal a Pagar: ${formatPrice(cart.reduce((sum, item) => sum + parseFloat(item.price), 0))}`;
+                    window.open(`https://wa.me/${whatsapp.replace('+', '')}?text=${encodeURIComponent(text)}`, '_blank');
+                    
+                    setCart([]);
+                    setCartOpen(false);
+                  } catch (e) {
+                    toast.error('Error al enviar el pedido', { id: 'order' });
+                  }
                 }}
                 style={{ width: '100%', padding: '1rem', background: cart.length === 0 || !whatsapp ? '#ccc' : '#66A5AD', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: cart.length === 0 || !whatsapp ? 'not-allowed' : 'pointer', fontSize: '1.1rem' }}
               >
-                {whatsapp ? 'Confirmar Pedido por WhatsApp' : 'Falta configurar WhatsApp'}
+                {whatsapp ? 'Enviar Pedido por WhatsApp' : 'Falta configurar WhatsApp'}
               </button>
             </div>
           </div>

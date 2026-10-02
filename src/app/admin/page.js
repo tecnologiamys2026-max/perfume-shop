@@ -23,12 +23,15 @@ export default function AdminPanel() {
 
   const [whatsapp, setWhatsapp] = useState('');
   const [currency, setCurrency] = useState('USD');
+  const [minStock, setMinStock] = useState(3);
   
-  // Estados para POS
+  // Estados para POS y Pedidos
   const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
+  const [posSearch, setPosSearch] = useState('');
 
   // Estado para modales personalizados
   const [modal, setModal] = useState({ isOpen: false, mode: '', type: '', id: null, name: '' });
@@ -55,7 +58,14 @@ export default function AdminPanel() {
       if (dataSettings && typeof dataSettings === 'object') {
         if (dataSettings.whatsapp) setWhatsapp(dataSettings.whatsapp);
         if (dataSettings.currency) setCurrency(dataSettings.currency);
+        if (dataSettings.minStock) setMinStock(parseInt(dataSettings.minStock));
       }
+
+      // Cargar Pedidos
+      const resOrders = await fetch('/api/orders');
+      const dataOrders = await resOrders.json();
+      if (Array.isArray(dataOrders)) setOrders(dataOrders);
+
     } catch (error) {
       toast.error('Error al conectar con la base de datos');
     }
@@ -217,7 +227,7 @@ export default function AdminPanel() {
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ whatsapp, currency })
+        body: JSON.stringify({ whatsapp, currency, minStock: minStock.toString() })
       });
       if (!response.ok) throw new Error();
       toast.success('Configuración global actualizada', { id: 'saveConfig' });
@@ -265,6 +275,22 @@ export default function AdminPanel() {
 
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+  const handleUpdateOrder = async (id, status) => {
+    toast.loading('Actualizando pedido...', { id: 'updateOrder' });
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status })
+      });
+      if (!response.ok) throw new Error();
+      toast.success('Pedido actualizado', { id: 'updateOrder' });
+      loadData();
+    } catch (error) {
+      toast.error('Error al actualizar', { id: 'updateOrder' });
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#F8FBFA' }}>
@@ -300,9 +326,10 @@ export default function AdminPanel() {
         <button onClick={() => setIsAuthenticated(false)} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 'bold', cursor: 'pointer' }}>Cerrar Sesión</button>
       </div>
       
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <button onClick={() => setActiveTab('productos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'productos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'productos' ? 'white' : 'black' }}>Gestión de Productos</button>
         <button onClick={() => setActiveTab('pos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pos' ? 'white' : 'black' }}>Facturación (POS)</button>
+        <button onClick={() => setActiveTab('pedidos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pedidos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pedidos' ? 'white' : 'black' }}>Pedidos y Alertas</button>
         <button onClick={() => setActiveTab('marcas')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'marcas' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'marcas' ? 'white' : 'black' }}>Categorías y Marcas</button>
         <button onClick={() => setActiveTab('config')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'config' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'config' ? 'white' : 'black' }}>Configuración Global</button>
       </div>
@@ -526,8 +553,15 @@ export default function AdminPanel() {
             {/* Lista de productos para vender */}
             <div style={{ flex: 2 }}>
               <h3 style={{ marginBottom: '1rem' }}>Punto de Venta</h3>
+              <input 
+                type="text" 
+                placeholder="🔍 Buscar producto en el catálogo..." 
+                value={posSearch}
+                onChange={(e) => setPosSearch(e.target.value)}
+                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '1rem' }}
+              />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
-                {products.filter(p => p.isAvailable).map(p => (
+                {products.filter(p => p.isAvailable && p.name.toLowerCase().includes(posSearch.toLowerCase())).map(p => (
                   <div key={p.id} onClick={() => addToCart(p)} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '1rem', cursor: p.stock > 0 ? 'pointer' : 'not-allowed', background: 'white', opacity: p.stock > 0 ? 1 : 0.5, textAlign: 'center', transition: 'transform 0.2s' }}>
                     <img src={p.imageUrl || '/logo.jpg'} alt={p.name} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />
                     <h4 style={{ margin: 0, fontSize: '0.9rem' }}>{p.name}</h4>
@@ -581,6 +615,98 @@ export default function AdminPanel() {
           </div>
         )}
 
+        {activeTab === 'pedidos' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            
+            {/* Alertas de Stock */}
+            <div>
+              <h3 style={{ marginBottom: '1rem', color: '#e74c3c' }}>⚠️ Alertas de Stock Bajo (Min: {minStock})</h3>
+              <div style={{ background: '#fff', border: '1px solid #ffcccc', borderRadius: '8px', padding: '1rem' }}>
+                {products.filter(p => p.stock <= minStock).length === 0 ? (
+                  <p style={{ color: '#2e7d32', margin: 0 }}>Todos los productos tienen buen inventario.</p>
+                ) : (
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {products.filter(p => p.stock <= minStock).map(p => (
+                      <li key={p.id} style={{ padding: '0.8rem 0', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                          <img src={p.imageUrl || '/logo.jpg'} alt={p.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                          <span><strong>{p.name}</strong> ({p.brand?.name})</span>
+                        </div>
+                        <span style={{ background: p.stock === 0 ? '#e74c3c' : '#f39c12', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '20px', fontWeight: 'bold' }}>Quedan: {p.stock}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            {/* Pedidos Pendientes */}
+            <div>
+              <h3 style={{ marginBottom: '1rem', color: '#3498db' }}>📦 Pedidos Pendientes (WhatsApp)</h3>
+              <div style={{ background: '#fff', border: '1px solid #bce8f1', borderRadius: '8px', padding: '1rem' }}>
+                {orders.filter(o => o.status === 'PENDING').length === 0 ? (
+                  <p style={{ color: '#888', margin: 0 }}>No hay pedidos pendientes en este momento.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {orders.filter(o => o.status === 'PENDING').map(o => (
+                      <div key={o.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '1.5rem', background: '#f9f9f9' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid #ddd', paddingBottom: '0.5rem' }}>
+                          <div>
+                            <strong style={{ fontSize: '1.1rem' }}>Pedido #{o.id}</strong>
+                            <p style={{ margin: '0.2rem 0 0', color: '#666', fontSize: '0.9rem' }}>{new Date(o.createdAt).toLocaleString()}</p>
+                          </div>
+                          <span style={{ fontWeight: 'bold', color: '#27ae60', fontSize: '1.2rem' }}>${parseFloat(o.totalAmount).toFixed(2)}</span>
+                        </div>
+                        <ul style={{ paddingLeft: '1.2rem', marginBottom: '1.5rem', fontSize: '1rem', color: '#333' }}>
+                          {o.items?.map(i => (
+                            <li key={i.id} style={{ marginBottom: '0.5rem' }}><strong>{i.quantity}x</strong> {i.product?.name} <span style={{ color: '#888' }}>(${parseFloat(i.price).toFixed(2)} c/u)</span></li>
+                          ))}
+                        </ul>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                          <button onClick={() => handleUpdateOrder(o.id, 'COMPLETED')} style={{ background: '#2ecc71', color: 'white', padding: '0.8rem 1.5rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>✅ Aprobar y Descontar Stock</button>
+                          <button onClick={() => handleUpdateOrder(o.id, 'CANCELLED')} style={{ background: '#e74c3c', color: 'white', padding: '0.8rem 1.5rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>❌ Cancelar Pedido</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Historial de Pedidos */}
+            <div>
+              <h3 style={{ marginBottom: '1rem', color: '#2C3E50' }}>📄 Historial de Ventas</h3>
+              <div style={{ overflowX: 'auto', background: 'white', border: '1px solid #eee', borderRadius: '8px' }}>
+                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead style={{ background: '#f9f9f9' }}>
+                    <tr>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>ID</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Fecha</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Total</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.filter(o => o.status !== 'PENDING').slice(0, 15).map(o => (
+                      <tr key={o.id}>
+                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>#{o.id}</td>
+                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
+                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>${parseFloat(o.totalAmount).toFixed(2)}</td>
+                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
+                          <span style={{ background: o.status === 'COMPLETED' ? '#e8f5e9' : '#ffebee', color: o.status === 'COMPLETED' ? '#2e7d32' : '#c62828', padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                            {o.status === 'COMPLETED' ? 'Completado' : 'Cancelado'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
         {activeTab === 'config' && (
           <div>
             <h3 style={{ marginBottom: '1.5rem' }}>Configuración de la Tienda</h3>
@@ -589,6 +715,11 @@ export default function AdminPanel() {
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Número de WhatsApp de Ventas</label>
                 <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Asegúrate de incluir el código de país, ej. +58 o +1.</p>
                 <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="Ej. +584141234567" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Alerta de Stock Mínimo</label>
+                <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Cantidad mínima en inventario antes de mostrar alerta.</p>
+                <input type="number" value={minStock} onChange={(e) => setMinStock(parseInt(e.target.value) || 0)} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required />
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Moneda Principal</label>
