@@ -33,6 +33,7 @@ export default function AdminPanel() {
   const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
   const [posSearch, setPosSearch] = useState('');
   const [editingOrderId, setEditingOrderId] = useState(null);
+  const [invoiceOrder, setInvoiceOrder] = useState(null);
 
   // Estado para modales personalizados
   const [modal, setModal] = useState({ isOpen: false, mode: '', type: '', id: null, name: '' });
@@ -351,6 +352,7 @@ export default function AdminPanel() {
         <button onClick={() => setActiveTab('productos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'productos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'productos' ? 'white' : 'black' }}>Gestión de Productos</button>
         <button onClick={() => setActiveTab('pos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pos' ? 'white' : 'black' }}>Facturación (POS)</button>
         <button onClick={() => setActiveTab('pedidos')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'pedidos' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'pedidos' ? 'white' : 'black' }}>Pedidos y Alertas</button>
+        <button onClick={() => setActiveTab('dashboard')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'dashboard' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'dashboard' ? 'white' : 'black' }}>Dashboard y Reportes</button>
         <button onClick={() => setActiveTab('marcas')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'marcas' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'marcas' ? 'white' : 'black' }}>Categorías y Marcas</button>
         <button onClick={() => setActiveTab('config')} style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === 'config' ? '#66A5AD' : '#e0e0e0', color: activeTab === 'config' ? 'white' : 'black' }}>Configuración Global</button>
       </div>
@@ -704,9 +706,12 @@ export default function AdminPanel() {
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>${parseFloat(o.totalAmount).toFixed(2)}</td>
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
-                          <span style={{ background: o.status === 'COMPLETED' ? '#e8f5e9' : '#ffebee', color: o.status === 'COMPLETED' ? '#2e7d32' : '#c62828', padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                          <span style={{ background: o.status === 'COMPLETED' ? '#e8f5e9' : '#ffebee', color: o.status === 'COMPLETED' ? '#2e7d32' : '#c62828', padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', display: 'inline-block', marginBottom: '0.5rem' }}>
                             {o.status === 'COMPLETED' ? 'Completado' : 'Cancelado'}
                           </span>
+                          {o.status === 'COMPLETED' && (
+                            <button onClick={() => setInvoiceOrder(o)} style={{ display: 'block', background: '#34495e', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>🖨️ Ver Factura</button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -715,6 +720,59 @@ export default function AdminPanel() {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {activeTab === 'dashboard' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <h3 style={{ margin: 0, color: '#2C3E50' }}>📊 Dashboard y Estadísticas</h3>
+            
+            {/* Tarjetas de Resumen */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', borderLeft: '5px solid #27ae60' }}>
+                <p style={{ margin: '0 0 0.5rem', color: '#7f8c8d', fontWeight: 'bold' }}>VENTAS TOTALES</p>
+                <h2 style={{ margin: 0, color: '#2c3e50' }}>${totalRevenue.toFixed(2)}</h2>
+              </div>
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', borderLeft: '5px solid #3498db' }}>
+                <p style={{ margin: '0 0 0.5rem', color: '#7f8c8d', fontWeight: 'bold' }}>PEDIDOS COMPLETADOS</p>
+                <h2 style={{ margin: 0, color: '#2c3e50' }}>{completedOrders.length}</h2>
+              </div>
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', borderLeft: '5px solid #9b59b6' }}>
+                <p style={{ margin: '0 0 0.5rem', color: '#7f8c8d', fontWeight: 'bold' }}>TICKET PROMEDIO</p>
+                <h2 style={{ margin: 0, color: '#2c3e50' }}>${completedOrders.length > 0 ? (totalRevenue / completedOrders.length).toFixed(2) : '0.00'}</h2>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+              {/* Gráfico de Ventas */}
+              <div style={{ flex: '1 1 500px', background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <h4 style={{ margin: '0 0 1.5rem', color: '#2c3e50' }}>Ingresos por Día</h4>
+                <div style={{ width: '100%', height: '300px' }}>
+                  <ResponsiveContainer>
+                    <BarChart data={chartData}>
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="Ventas" fill="#66A5AD" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Productos Más Vendidos */}
+              <div style={{ flex: '1 1 300px', background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <h4 style={{ margin: '0 0 1.5rem', color: '#2c3e50' }}>Top 5 Productos Más Vendidos</h4>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {topProducts.map((p, i) => (
+                    <li key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.8rem 0', borderBottom: '1px solid #eee' }}>
+                      <span><strong>{i+1}.</strong> {p.name}</span>
+                      <span style={{ background: '#f8f9fa', padding: '0.2rem 0.6rem', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.9rem' }}>{p.quantity} vendidos</span>
+                    </li>
+                  ))}
+                  {topProducts.length === 0 && <p style={{ color: '#888' }}>No hay suficientes datos aún.</p>}
+                </ul>
+              </div>
+            </div>
           </div>
         )}
 
@@ -784,6 +842,62 @@ export default function AdminPanel() {
               </>
             )}
 
+          </div>
+        </div>
+      )}
+
+      {/* Modal Factura */}
+      {invoiceOrder && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '400px', boxShadow: '0 5px 20px rgba(0,0,0,0.2)' }}>
+            <div id="invoice-print-area" style={{ fontFamily: 'monospace', color: 'black' }}>
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ margin: 0 }}>TIENDA MAYRA</h2>
+                <p style={{ margin: 0 }}>RIF: J-00000000</p>
+                <p style={{ margin: 0 }}>Tel: {whatsapp}</p>
+                <p style={{ margin: '1rem 0 0', fontWeight: 'bold' }}>FACTURA #{invoiceOrder.id}</p>
+                <p style={{ margin: 0 }}>Fecha: {new Date(invoiceOrder.createdAt).toLocaleString()}</p>
+              </div>
+              <div style={{ borderBottom: '1px dashed #333', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+                <p style={{ margin: 0 }}>Cliente: {invoiceOrder.customerName || 'Consumidor Final'}</p>
+                {invoiceOrder.customerPhone && <p style={{ margin: 0 }}>Teléfono: {invoiceOrder.customerPhone}</p>}
+                <p style={{ margin: 0 }}>Pago: {invoiceOrder.paymentMethod}</p>
+              </div>
+              <table style={{ width: '100%', textAlign: 'left', marginBottom: '1rem', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px dashed #333' }}>
+                    <th style={{ paddingBottom: '0.5rem' }}>Cant</th>
+                    <th style={{ paddingBottom: '0.5rem' }}>Desc</th>
+                    <th style={{ paddingBottom: '0.5rem', textAlign: 'right' }}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoiceOrder.items?.map(item => (
+                    <tr key={item.id}>
+                      <td style={{ paddingTop: '0.5rem' }}>{item.quantity}</td>
+                      <td style={{ paddingTop: '0.5rem' }}>{item.product?.name}</td>
+                      <td style={{ paddingTop: '0.5rem', textAlign: 'right' }}>${(item.quantity * item.price).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div style={{ borderTop: '1px dashed #333', paddingTop: '1rem', textAlign: 'right' }}>
+                <h3 style={{ margin: 0 }}>TOTAL: ${(parseFloat(invoiceOrder.totalAmount)).toFixed(2)}</h3>
+              </div>
+              <p style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.9rem' }}>¡Gracias por su compra!</p>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }} className="no-print">
+              <button onClick={() => {
+                const printContent = document.getElementById('invoice-print-area').innerHTML;
+                const originalContent = document.body.innerHTML;
+                document.body.innerHTML = printContent;
+                window.print();
+                document.body.innerHTML = originalContent;
+                window.location.reload();
+              }} style={{ flex: 1, background: '#2C3E50', color: 'white', padding: '0.8rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>🖨️ Imprimir</button>
+              <button onClick={() => setInvoiceOrder(null)} style={{ flex: 1, background: '#ccc', color: 'black', padding: '0.8rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Cerrar</button>
+            </div>
           </div>
         </div>
       )}
