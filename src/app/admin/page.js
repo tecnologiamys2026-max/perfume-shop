@@ -280,8 +280,18 @@ export default function AdminPanel() {
               </div>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Precio *</label>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Precio de Venta *</label>
                   <input name="price" type="number" step="0.01" defaultValue={editingProduct?.price || ''} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Precio de Costo</label>
+                  <input name="costPrice" type="number" step="0.01" defaultValue={editingProduct?.costPrice || ''} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Stock Inicial</label>
+                  <input name="stock" type="number" defaultValue={editingProduct?.stock || ''} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Género</label>
@@ -371,7 +381,9 @@ export default function AdminPanel() {
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Foto</th>
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Nombre</th>
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Marca</th>
-                      <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Precio</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Precio Venta</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Precio Costo</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Stock</th>
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Estado</th>
                       <th style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>Acciones</th>
                     </tr>
@@ -394,6 +406,12 @@ export default function AdminPanel() {
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>{p.name}</td>
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>{p.brand?.name}</td>
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>${parseFloat(p.price).toFixed(2)}</td>
+                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>${parseFloat(p.costPrice || 0).toFixed(2)}</td>
+                        <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
+                          <span style={{ fontWeight: 'bold', color: p.stock > 5 ? '#2e7d32' : p.stock > 0 ? '#f39c12' : '#e74c3c' }}>
+                            {p.stock || 0}
+                          </span>
+                        </td>
                         <td style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
                           <span style={{ padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', background: p.isAvailable ? '#e8f5e9' : '#f5f5f5', color: p.isAvailable ? '#2e7d32' : '#757575' }}>
                             {p.isAvailable ? 'Activo' : 'Oculto'}
@@ -483,30 +501,7 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {activeTab === 'config' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem' }}>Configuración de la Tienda</h3>
-            <form onSubmit={handleSaveConfig} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Número de WhatsApp de Ventas</label>
-                <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Asegúrate de incluir el código de país, ej. +58 o +1.</p>
-                <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="Ej. +584141234567" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }} required />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Moneda Principal</label>
-                <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc' }}>
-                  <option value="USD">Dólar Estadounidense (USD $)</option>
-                  <option value="VES">Bolívar Venezolano (VES Bs)</option>
-                  <option value="DOP">Peso Dominicano (DOP RD$)</option>
-                  <option value="EUR">Euro (EUR €)</option>
-                  <option value="COP">Peso Colombiano (COP $)</option>
-                  <option value="MXN">Peso Mexicano (MXN $)</option>
-                </select>
-              </div>
-              <button type="submit" style={{ background: '#66A5AD', color: 'white', padding: '1rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Guardar Configuración Global</button>
-            </form>
-          </div>
-        )}
+
       </div>
 
       {/* MODAL PERSONALIZADO */}

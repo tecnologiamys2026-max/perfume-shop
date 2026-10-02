@@ -24,6 +24,8 @@ export async function POST(request) {
     const brandId = data.get('brandId');
     const categoryId = data.get('categoryId');
     const isAvailable = data.get('isAvailable') !== 'false';
+    const costPrice = data.get('costPrice') || '0';
+    const stock = data.get('stock') || '0';
 
     if (!name || !price || !brandId || !categoryId) {
       return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
@@ -52,6 +54,8 @@ export async function POST(request) {
       data: {
         name,
         price: parseFloat(price),
+        costPrice: parseFloat(costPrice),
+        stock: parseInt(stock, 10),
         gender,
         brandId: parseInt(brandId),
         categoryId: parseInt(categoryId),
@@ -89,6 +93,8 @@ export async function PUT(request) {
     const categoryId = data.get('categoryId');
     const isAvailable = data.get('isAvailable') === 'true';
     const file = data.get('image');
+    const costPrice = data.get('costPrice') || '0';
+    const stock = data.get('stock') || '0';
 
     if (!id || !name || !price || !brandId || !categoryId) {
       return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
@@ -97,6 +103,8 @@ export async function PUT(request) {
     let updateData = {
       name,
       price: parseFloat(price),
+      costPrice: parseFloat(costPrice),
+      stock: parseInt(stock, 10),
       gender,
       brandId: parseInt(brandId),
       categoryId: parseInt(categoryId),
