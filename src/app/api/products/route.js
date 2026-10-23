@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { put } from '@vercel/blob';
+import { uploadImage } from '@/lib/storage';
 
 export async function GET() {
   try {
@@ -33,21 +33,9 @@ export async function POST(request) {
 
     let imageUrl = '';
     
-    // Si el usuario subió un archivo de imagen, guardarlo en Vercel Blob
+    // Subir imagen (a Cloudinary o almacenamiento configurado)
     if (file && file.name) {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      const uniqueName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-      
-      // Subir archivo a Vercel Blob
-      const blob = await put(`products/${uniqueName}`, buffer, {
-        access: 'public',
-        contentType: file.type || 'image/jpeg',
-      });
-      
-      // Guardar la URL pública generada por Vercel
-      imageUrl = blob.url;
+      imageUrl = await uploadImage(file);
     }
 
     const newProduct = await prisma.product.create({
@@ -112,14 +100,7 @@ export async function PUT(request) {
     };
 
     if (file && file.size > 0 && file.name) {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const uniqueName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-      const blob = await put(`products/${uniqueName}`, buffer, {
-        access: 'public',
-        contentType: file.type || 'image/jpeg',
-      });
-      updateData.imageUrl = blob.url;
+      updateData.imageUrl = await uploadImage(file);
     }
 
     const updatedProduct = await prisma.product.update({
